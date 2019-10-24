@@ -1,0 +1,6 @@
+filesdir:
+destlocalpath:
+serveport: :8080
+
+authuser:
+authpassword:
