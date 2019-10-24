@@ -2,48 +2,72 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-yaml/yaml"
+	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 )
 
+type Conf struct {
+	DestLocalPath string
+	FilesDir string
+	ServePort string
+}
+
+var config *Conf
+
 func main() {
+	config = GetConf()
+
 	//mux := http.NewServeMux()
 	//mux.HandleFunc("/upload", upload)
 	//fmt.Println("Starting...")
 	log.Println("logStarting...")
 	//http.HandleFunc("/upload", upload)
-	s := http.FileServer(http.Dir("/home/banana"))
+	s := http.FileServer(http.Dir(config.FilesDir))
 	http.Handle("/files/", http.StripPrefix("/files/", s))
 	http.HandleFunc("/upload", upload)
-	http.ListenAndServe(":3000", nil)
+	err := http.ListenAndServe(config.ServePort, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
-const uploadHTML = `
-<html>
-  <head>
-	<title>选择文件</title>
-  </head>
-  <body>
-	<form enctype="multipart/form-data" action="/upload" method="post">
-	  <input type="file" name="uploadfile" />
-	  <input type="submit" value="上传" />
-  	</form>
-  </body>
-</html>
-`
+func GetConf() *Conf{
+	data, _ := ioutil.ReadFile("config.yml")
+	t := Conf{}
+	err := yaml.Unmarshal(data, &t)
+	fmt.Println("初始数据", t)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return &t
+}
 
-const destLocalPath = "/home/banana/Public/"
+type indexParam struct {
+	Message string
+}
 
-func index(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(uploadHTML))
+func index(w http.ResponseWriter, r *http.Request, message string) {
+	upload_template, err := template.ParseFiles("html/upload.html")
+	if err != nil {
+		fmt.Println("parse file err:",err)
+		w.Write([]byte("parse htmlfile failed!"))
+		return
+	}
+	p := &indexParam{
+		Message: message,
+	}
+	upload_template.Execute(w, p)
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		fmt.Println("GET method....")
-		index(w, r)
+		index(w, r, "Ready!")
 		return
 	}
 	fmt.Println("POST method....")
@@ -57,22 +81,17 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer clientfd.Close()
 
-	localpath := fmt.Sprintf("%s%s", destLocalPath, handler.Filename)
-	localfd, err := os.Create(localpath)
+	localpath := fmt.Sprintf("%s%s", config.DestLocalPath, handler.Filename)
+	localfd, err := os.OpenFile(localpath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println("3333", err)
+		fmt.Println(err)
 		w.Write([]byte("upload failed!"))
 		return
 	}
-
-	//localfd, err := os.OpenFile(localpath, os.O_WRONLY|os.O_CREATE, 0666)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	w.Write([]byte("upload failed!"))
-	//	return
-	//}
 	defer localfd.Close()
 
 	io.Copy(localfd, clientfd)
-	w.Write([]byte("upload finish ~.~ !"))
+	index(w, r, fmt.Sprintf("[%s] uploaded!", handler.Filename))
+	//w.Header().Set("Location", "/up)load")
+	//w.WriteHeader(301)
 }

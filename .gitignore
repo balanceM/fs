@@ -1,1 +1,5 @@
 .idea/
+*.yml
+
+go.mod
+go.sum
