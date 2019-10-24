@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/go-yaml/yaml"
+	"github.com/goji/httpauth"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -15,6 +16,9 @@ type Conf struct {
 	DestLocalPath string
 	FilesDir string
 	ServePort string
+
+	AuthUser string
+	AuthPassoword string
 }
 
 var config *Conf
@@ -22,14 +26,13 @@ var config *Conf
 func main() {
 	config = GetConf()
 
-	//mux := http.NewServeMux()
-	//mux.HandleFunc("/upload", upload)
-	//fmt.Println("Starting...")
 	log.Println("logStarting...")
 	//http.HandleFunc("/upload", upload)
+	authHandle := httpauth.SimpleBasicAuth(config.AuthUser, config.AuthPassoword)
+
 	s := http.FileServer(http.Dir(config.FilesDir))
-	http.Handle("/files/", http.StripPrefix("/files/", s))
-	http.HandleFunc("/upload", upload)
+	http.Handle("/files/", authHandle(http.StripPrefix("/files/", s)))
+	http.Handle("/", authHandle(http.HandlerFunc(upload)))
 	err := http.ListenAndServe(config.ServePort, nil)
 	if err != nil {
 		fmt.Println(err)
