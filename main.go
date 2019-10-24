@@ -18,7 +18,7 @@ type Conf struct {
 	ServePort string
 
 	AuthUser string
-	AuthPassoword string
+	AuthPassword string
 }
 
 var config *Conf
@@ -28,14 +28,31 @@ func main() {
 
 	log.Println("logStarting...")
 	//http.HandleFunc("/upload", upload)
-	authHandle := httpauth.SimpleBasicAuth(config.AuthUser, config.AuthPassoword)
+	authHandle := httpauth.SimpleBasicAuth(config.AuthUser, config.AuthPassword)
 
 	s := http.FileServer(http.Dir(config.FilesDir))
 	http.Handle("/files/", authHandle(http.StripPrefix("/files/", s)))
-	http.Handle("/", authHandle(http.HandlerFunc(upload)))
+	http.Handle("/upload", authHandle(http.HandlerFunc(upload)))
+	http.Handle("/delete", authHandle(http.HandlerFunc(delFile)))
 	err := http.ListenAndServe(config.ServePort, nil)
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+func filesshow(w http.ResponseWriter, r *http.Request) {
+	files_template, err := template.ParseFiles("html/filesshow.html")
+	if err != nil {
+		fmt.Println(err)
+		w.Write([]byte("files_template failed!"))
+	}
+	files_template.Execute(w, config)
+}
+
+func delFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		filesshow(w, r)
+		return
 	}
 }
 
