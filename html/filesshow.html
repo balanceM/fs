@@ -5,6 +5,44 @@
     <title>Title</title>
 </head>
 <body>
+    Files:<br/>
+    <div id="all_files">
 
+    </div>
+{{/*    {{with .Files}}*/}}
+{{/*        <ul>*/}}
+{{/*        {{range .}}*/}}
+{{/*        {{if eq .Type "dir"}}*/}}
+{{/*           --- <button style="color:blue">{{.Name}}</button><br/>*/}}
+{{/*            <ul>*/}}
+{{/*            {{range $i, $v := .Files}}*/}}
+{{/*                <li>{{$v.Name}}</li>*/}}
+{{/*            {{end}}*/}}
+{{/*            </ul>*/}}
+{{/*        {{else}}*/}}
+{{/*            <li>{{.Name}}</li>*/}}
+{{/*        {{end}}*/}}
+{{/*        {{end}}*/}}
+{{/*        </ul>*/}}
+{{/*    {{end}}*/}}
 </body>
+<script type="text/javascript">
+    function add_ul() {
+        var ur_str = "<ul>"
+        {{with .Files}}
+            {{range .}}
+            {{if eq .Type "dir"}}
+                ur_str += '<button style="color:blue">'+{{.Name}}+'</button><br/>'
+                ur_str += add_ul()
+            {{else}}
+                ur_str += '<li>'+{{.Name}}+'</li>'
+            {{end}}
+            {{end}}
+        {{end}}
+        ur_str += "</ur>"
+        return ur_str
+    }
+    var element = document.getElementById("all_files")
+    element.innerText = add_ul()
+</script>
 </html>

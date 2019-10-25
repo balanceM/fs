@@ -40,13 +40,56 @@ func main() {
 	}
 }
 
+type FileInfo struct {
+	Type string
+	Name string
+	Path string
+	Files []*FileInfo
+}
+
 func filesshow(w http.ResponseWriter, r *http.Request) {
 	files_template, err := template.ParseFiles("html/filesshow.html")
 	if err != nil {
 		fmt.Println(err)
 		w.Write([]byte("files_template failed!"))
 	}
-	files_template.Execute(w, config)
+
+	files, err := getFiles(w, config.DestLocalPath)
+	if err != nil {
+		fmt.Println(err)
+		w.Write([]byte("error!"))
+		return
+	}
+	data := struct {
+		Files []*FileInfo
+	}{files}
+	files_template.Execute(w, data)
+}
+
+func getFiles(w http.ResponseWriter, dirpath string) ([]*FileInfo, error){
+	rd, err := ioutil.ReadDir(dirpath)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	var files []*FileInfo
+	for _, fi := range rd {
+		fileInfo := &FileInfo{}
+		if fi.IsDir() {
+			fileInfo.Type = "dir"
+			fmt.Println(dirpath+fi.Name()+"/")
+			fileInfo.Files, err = getFiles(w, dirpath+fi.Name()+"/")
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			fileInfo.Type = "file"
+		}
+		fileInfo.Name = fi.Name()
+		fileInfo.Path = config.DestLocalPath
+		files = append(files, fileInfo)
+	}
+	return files, nil
 }
 
 func delFile(w http.ResponseWriter, r *http.Request) {
