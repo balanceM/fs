@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+   <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+{{/*    <script type="text/javascript" src="/static/js/jquery.js"></script>*/}}
 </head>
 <body>
     Files:<br/>
@@ -12,8 +14,17 @@
 </body>
 <script type="text/javascript">
     function delete_file(filepath) {
-        alert(filepath);
-        {{.delfile "123"}}
+        if(window.confirm("delete???")){
+            $.ajax({
+                type: 'Post',
+                url: 'delete',
+                data: {filepath: filepath},
+                success: function (datas) {
+                    alert(datas);
+                    location.reload();
+                }
+            });
+        }
     }
 </script>
 </html>

@@ -31,6 +31,8 @@ func main() {
 	authHandle := httpauth.SimpleBasicAuth(config.AuthUser, config.AuthPassword)
 
 	s := http.FileServer(http.Dir(config.FilesDir))
+	static_fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix( "/static/", static_fs))
 	http.Handle("/files/", authHandle(http.StripPrefix("/files/", s)))
 	http.Handle("/upload", authHandle(http.HandlerFunc(upload)))
 	http.Handle("/delete", authHandle(http.HandlerFunc(delFile)))
@@ -49,9 +51,8 @@ type FileInfo struct {
 
 func filesshow(w http.ResponseWriter, r *http.Request) {
 	var funcMaps = template.FuncMap{
-		"delfile": func(filepath string) bool{
-			fmt.Println(filepath+"deleted~~~")
-			return true
+		"add": func(a, b string) string {
+			return a+b
 		},
 	}
 
@@ -92,10 +93,9 @@ func getFiles(w http.ResponseWriter, dirpath string) ([]*FileInfo, error){
 			}
 		} else {
 			fileInfo.Type = "file"
-			fileInfo.Path = dirpath
 		}
 		fileInfo.Name = fi.Name()
-		fileInfo.Path = config.DestLocalPath
+		fileInfo.Path = dirpath
 		files = append(files, fileInfo)
 	}
 	return files, nil
@@ -106,6 +106,28 @@ func delFile(w http.ResponseWriter, r *http.Request) {
 		filesshow(w, r)
 		return
 	}
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("~~~~~~~~~~~~~~~~~~~~~")
+	filepath := r.PostFormValue("filepath")
+	fmt.Println(filepath)
+	_, err = os.Stat(filepath)
+	if err != nil {
+		fmt.Println(err)
+		w.Write([]byte("Failed!"))
+		return
+	}
+	err = os.Remove(filepath)
+	if err != nil {
+		fmt.Println(err)
+		w.Write([]byte("Failed!"))
+		return
+	}
+	w.Write([]byte("Succeed!"))
+	return
 }
 
 func GetConf() *Conf{

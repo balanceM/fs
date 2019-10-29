@@ -6,7 +6,7 @@
                 <li style="color:blue">{{.Name}}</li><br/>
                 {{template "ul_list" .}}
             {{else}}
-                <li>{{.Name}} <button onclick="delete_file({{.Name}})">delete</button></li>
+                <li>{{.Name}} <button onclick="delete_file({{add .Path .Name}})">delete</button></li>
             {{end}}
         {{end}}
     {{end}}
