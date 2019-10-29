@@ -48,8 +48,16 @@ type FileInfo struct {
 }
 
 func filesshow(w http.ResponseWriter, r *http.Request) {
-	files_template, err := template.ParseFiles("html/filesshow.html")
+	var funcMaps = template.FuncMap{
+		"delfile": func(filepath string) bool{
+			fmt.Println(filepath+"deleted~~~")
+			return true
+		},
+	}
+
+	files_template, err := template.New("filesshow.html").Funcs(funcMaps).ParseFiles("html/filesshow.html", "html/ul_list.html")
 	if err != nil {
+
 		fmt.Println(err)
 		w.Write([]byte("files_template failed!"))
 	}
@@ -84,6 +92,7 @@ func getFiles(w http.ResponseWriter, dirpath string) ([]*FileInfo, error){
 			}
 		} else {
 			fileInfo.Type = "file"
+			fileInfo.Path = dirpath
 		}
 		fileInfo.Name = fi.Name()
 		fileInfo.Path = config.DestLocalPath

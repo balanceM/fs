@@ -1,0 +1,14 @@
+{{define "ul_list"}}
+    <ul>
+    {{with .Files }}
+        {{range .}}
+            {{if eq .Type "dir"}}
+                <li style="color:blue">{{.Name}}</li><br/>
+                {{template "ul_list" .}}
+            {{else}}
+                <li>{{.Name}} <button onclick="delete_file({{.Name}})">delete</button></li>
+            {{end}}
+        {{end}}
+    {{end}}
+    </ul>
+{{end}}
