@@ -114,13 +114,19 @@ func delFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("~~~~~~~~~~~~~~~~~~~~~")
 	filepath := r.PostFormValue("filepath")
 	fmt.Println(filepath)
-	_, err = os.Stat(filepath)
+	info, err := os.Stat(filepath)
 	if err != nil {
 		fmt.Println(err)
 		w.Write([]byte("Failed!"))
 		return
 	}
-	err = os.Remove(filepath)
+
+	// remove
+	if info.IsDir() {
+		err = os.RemoveAll(filepath)
+	} else {
+		err = os.Remove(filepath)
+	}
 	if err != nil {
 		fmt.Println(err)
 		w.Write([]byte("Failed!"))

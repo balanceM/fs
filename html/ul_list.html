@@ -3,7 +3,7 @@
     {{with .Files }}
         {{range .}}
             {{if eq .Type "dir"}}
-                <li style="color:blue">{{.Name}}</li><br/>
+                <li style="color:blue">{{.Name}} <button onclick="delete_file({{add .Path .Name}})">delete</button></li><br/>
                 {{template "ul_list" .}}
             {{else}}
                 <li>{{.Name}} <button onclick="delete_file({{add .Path .Name}})">delete</button></li>
