@@ -193,8 +193,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	//---》 ratelimit 限速10m/s
 	// Bucket adding 100KB every second, holding max 100KB
-	bucket := ratelimit.NewBucketWithRate(1024*1024, 1024*1024)
+	bucket := ratelimit.NewBucketWithRate(100*1024, 100*1024)
 	io.Copy(localfd, ratelimit.Reader(clientfd, bucket))
 	// 《-- ratelimit
-	index(w, r, fmt.Sprintf("[%s] uploaded!", handler.Filename))
+	//index(w, r, fmt.Sprintf("[%s] uploaded!", handler.Filename))
 }
