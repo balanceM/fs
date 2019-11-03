@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-yaml/yaml"
 	"github.com/goji/httpauth"
+	"github.com/juju/ratelimit"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -190,8 +191,10 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer localfd.Close()
 
-	io.Copy(localfd, clientfd)
+	//---》 ratelimit 限速10m/s
+	// Bucket adding 100KB every second, holding max 100KB
+	bucket := ratelimit.NewBucketWithRate(1024*1024, 1024*1024)
+	io.Copy(localfd, ratelimit.Reader(clientfd, bucket))
+	// 《-- ratelimit
 	index(w, r, fmt.Sprintf("[%s] uploaded!", handler.Filename))
-	//w.Header().Set("Location", "/up)load")
-	//w.WriteHeader(301)
 }
