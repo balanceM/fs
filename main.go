@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/go-yaml/yaml"
 	"github.com/goji/httpauth"
-	"github.com/juju/ratelimit"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -172,8 +171,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("POST method....")
-
-	r.ParseMultipartForm(32 << 20)
+	//r.Body = http.MaxBytesReader(w, r.Body, 32<<20+512) // 限s制上传数据不超过32.5mb
+	r.ParseMultipartForm(32 << 20) // 上传的文件们按顺序存入内存,累加不得超过32mb,超出部分存入系统临时文件
 	clientfd, handler, err := r.FormFile("uploadfile")
 	if err != nil {
 		fmt.Println("2222", err)
@@ -193,8 +192,10 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	//---》 ratelimit 限速10m/s
 	// Bucket adding 100KB every second, holding max 100KB
-	bucket := ratelimit.NewBucketWithRate(100*1024, 100*1024)
-	io.Copy(localfd, ratelimit.Reader(clientfd, bucket))
+	//bucket := ratelimit.NewBucketWithRate(1000*1024, 1000*1024)
+	//io.Copy(localfd, ratelimit.Reader(clientfd, bucket))
+	io.Copy(localfd, clientfd)
+	w.Write([]byte("Success!!!"))
 	// 《-- ratelimit
 	//index(w, r, fmt.Sprintf("[%s] uploaded!", handler.Filename))
 }
