@@ -51,3 +51,13 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	// 《-- ratelimit
 	//index(w, r, fmt.Sprintf("[%s] uploaded!", handler.Filename))
 }
+
+func showVideos(w http.ResponseWriter, r *http.Request) {
+	video_template, err := template.ParseFiles("html/abx.html")
+	if err != nil {
+		fmt.Println("parse file err:",err)
+		w.Write([]byte("parse htmlfile failed!"))
+		return
+	}
+	video_template.Execute(w, nil)
+}

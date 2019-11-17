@@ -24,8 +24,11 @@ func main() {
 	http.Handle("/files/", authHandle(http.StripPrefix("/files/", s)))
 	http.Handle("/upload", authHandle(http.HandlerFunc(upload)))
 	http.Handle("/delete", authHandle(http.HandlerFunc(delFile)))
-	err := http.ListenAndServeTLS(config.ServePort, "balancem.ltd_chain.crt", "balancem.ltd_key.key",nil)
+	http.Handle("/videos", authHandle(http.HandlerFunc(showVideos)))
+
+	err := http.ListenAndServe(config.ServePort, nil)
+	//err := http.ListenAndServeTLS(config.ServePort, "balancem.ltd_chain.crt", "balancem.ltd_key.key",nil)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("ServerError: %v", err)
 	}
 }
