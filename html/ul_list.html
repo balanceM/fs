@@ -1,14 +1,14 @@
 {{define "ul_list"}}
-    <ul>
+    <table style="margin-left: 10px" border="1" cellpadding="30">
     {{with .Files }}
         {{range .}}
             {{if eq .Type "dir"}}
-                <li style="color:blue">{{.Name}} <button onclick="delete_file({{add .Path .Name}})">delete</button></li><br/>
-                {{template "ul_list" .}}
+                <tr style="color:blue;margin-left: 10px;"><td>{{.Name}}</td><td><button onclick="delete_file({{add .Path .Name}})">delete</button></td></tr>
+                <tr style="color:blue;margin-left: 10px;"><td></td><td>{{template "ul_list" .}}</td></tr>
             {{else}}
-                <li>{{.Name}} <button onclick="delete_file({{add .Path .Name}})">delete</button></li>
+                <tr style="margin-left: 10px"><td>{{.Name}}</td><td><button onclick="delete_file({{add .Path .Name}})">delete</button></td></tr>
             {{end}}
         {{end}}
     {{end}}
-    </ul>
+    </table>
 {{end}}
