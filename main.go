@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/goji/httpauth"
 	"log"
 	"net/http"
+
+	"github.com/goji/httpauth"
 )
 
 var config *Conf
-func init()  {
+
+func init() {
 	config = GetConf()
 }
 
@@ -20,7 +22,7 @@ func main() {
 
 	s := http.FileServer(http.Dir(config.FilesDir))
 	static_fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix( "/static/", static_fs))
+	http.Handle("/static/", http.StripPrefix("/static/", static_fs))
 	http.Handle("/files/", authHandle(http.StripPrefix("/files/", s)))
 	http.Handle("/upload", authHandle(http.HandlerFunc(upload)))
 	http.Handle("/delete", authHandle(http.HandlerFunc(delFile)))
